@@ -20,9 +20,9 @@ import com.hazelcast.jet.IMapJet;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.Util;
+import com.hazelcast.jet.avrosample.model.User;
 import com.hazelcast.jet.pipeline.Pipeline;
 import com.hazelcast.jet.pipeline.Sinks;
-import com.hazelcast.jet.pipeline.Sources;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,8 +40,7 @@ public class SourceSample {
 
         Pipeline pipeline = Pipeline.create();
 
-        pipeline.drawFrom(Sources.<User>batchFromProcessor("avro-file",
-                ReadAvroP.metaSupplier(directory.toString(), "*", User.class)))
+        pipeline.drawFrom(AvroSources.avroFiles(directory.toString(), User.class))
                 .map(user -> Util.entry(user.getUsername(), user))
                 .drainTo(Sinks.map(SinkSample.MAP_NAME));
 

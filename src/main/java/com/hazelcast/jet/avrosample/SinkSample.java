@@ -19,6 +19,7 @@ package com.hazelcast.jet.avrosample;
 import com.hazelcast.jet.IMapJet;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
+import com.hazelcast.jet.avrosample.model.User;
 import com.hazelcast.jet.config.JobConfig;
 import com.hazelcast.jet.function.DistributedFunction;
 import com.hazelcast.jet.impl.util.ExceptionUtil;
@@ -61,38 +62,11 @@ public class SinkSample {
 
         pipeline.drawFrom(Sources.<String, User>map(MAP_NAME))
                 .map(Map.Entry::getValue)
-                .drainTo(avroFileSink(User.class, objectClass -> schemaForUser(), AVRO_FILE_NAME))
-                .setLocalParallelism(1);
+                .drainTo(AvroSinks.avroFiles(User.class, SinkSample::schemaForUser, AVRO_FILE_NAME));
 
         jet.newJob(pipeline, new JobConfig().addClass(Schema.class)).join();
 
         jet.shutdown();
-    }
-
-    /**
-     * Creates a sink which writes items to a single avro file
-     * Since {@link Schema} is not {@link java.io.Serializable} we use a
-     * {@code schemeFn} instead of using {@link Schema} object directly
-     * <p>
-     * Local parallelism of the sink should be 1, otherwise processors will write to same file
-     */
-    private static <R> Sink<R> avroFileSink(Class<R> objectClass,
-                                            DistributedFunction<Class<R>, Schema> schemaFn,
-                                            String filename) {
-        return Sinks
-                .<DataFileWriter<R>, R>builder(jet -> {
-                    try {
-                        DataFileWriter<R> writer = new DataFileWriter<>(new ReflectDatumWriter<>(objectClass));
-                        writer.create(schemaFn.apply(objectClass), new File(filename));
-                        return writer;
-                    } catch (IOException e) {
-                        throw ExceptionUtil.sneakyThrow(e);
-                    }
-                })
-                .onReceiveFn((writer, item) -> Util.uncheckRun(() -> writer.append(item)))
-                .flushFn(writer -> Util.uncheckRun(writer::flush))
-                .destroyFn(writer -> Util.uncheckRun(writer::close))
-                .build();
     }
 
     private static Schema schemaForUser() {

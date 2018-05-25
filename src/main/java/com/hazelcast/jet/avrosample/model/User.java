@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.jet.avrosample;
+package com.hazelcast.jet.avrosample.model;
 
 import java.io.Serializable;
 

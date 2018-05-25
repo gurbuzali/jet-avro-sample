@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.hazelcast.jet.avrosample;
+package com.hazelcast.jet.avrosample.processors;
 
 import com.hazelcast.jet.Traverser;
 import com.hazelcast.jet.Traversers;
@@ -38,7 +38,7 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * Processor which reads avro files from specified directory using
- * {@link ReflectDatumReader} with give {@code objectClass}
+ * {@link ReflectDatumReader} with given {@code objectClass}
  */
 public final class ReadAvroP<R> extends AbstractProcessor {
 
