@@ -46,7 +46,7 @@ public class WriteAvroP {
     public static <R> ProcessorMetaSupplier metaSupplier(Class<R> objectClass,
                                                          DistributedSupplier<Schema> schemaSupplier,
                                                          String filename) {
-        return ProcessorMetaSupplier.forceTotalParallelismOne(new Supplier<>(objectClass, schemaSupplier, filename));
+        return ProcessorMetaSupplier.preferLocalParallelismOne(new Supplier<>(objectClass, schemaSupplier, filename));
     }
 
     private static class Supplier<R> implements ProcessorSupplier {
@@ -63,10 +63,10 @@ public class WriteAvroP {
 
         @Override
         public Collection<? extends Processor> get(int count) {
-            DistributedFunction<Processor.Context, DataFileWriter<R>> createFn = jet -> {
+            DistributedFunction<Processor.Context, DataFileWriter<R>> createFn = context -> {
                 try {
                     DataFileWriter<R> writer = new DataFileWriter<>(new ReflectDatumWriter<>(objectClass));
-                    writer.create(schemaSupplier.get(), new File(filename));
+                    writer.create(schemaSupplier.get(), new File(filename + "-" + context.globalProcessorIndex()));
                     return writer;
                 } catch (IOException e) {
                     throw ExceptionUtil.sneakyThrow(e);

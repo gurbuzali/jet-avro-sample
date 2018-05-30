@@ -21,20 +21,12 @@ import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.avrosample.model.User;
 import com.hazelcast.jet.config.JobConfig;
-import com.hazelcast.jet.function.DistributedFunction;
-import com.hazelcast.jet.impl.util.ExceptionUtil;
-import com.hazelcast.jet.impl.util.Util;
 import com.hazelcast.jet.pipeline.Pipeline;
-import com.hazelcast.jet.pipeline.Sink;
-import com.hazelcast.jet.pipeline.Sinks;
 import com.hazelcast.jet.pipeline.Sources;
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaBuilder;
-import org.apache.avro.file.DataFileWriter;
-import org.apache.avro.reflect.ReflectDatumWriter;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 
 
@@ -51,6 +43,7 @@ public class SinkSample {
         createUsersDirectory();
 
         JetInstance jet = Jet.newJetInstance();
+        Jet.newJetInstance();
 
         IMapJet<String, User> map = jet.getMap(MAP_NAME);
         for (int i = 0; i < 100; i++) {
@@ -66,7 +59,7 @@ public class SinkSample {
 
         jet.newJob(pipeline, new JobConfig().addClass(Schema.class)).join();
 
-        jet.shutdown();
+        Jet.shutdownAll();
     }
 
     private static Schema schemaForUser() {
